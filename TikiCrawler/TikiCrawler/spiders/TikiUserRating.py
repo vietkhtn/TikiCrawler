@@ -1,9 +1,9 @@
 import scrapy
 import re
-from ..items import TikiProductInfo, TikiUserRating
+from ..items import TikiUserRating
 
 class UserRating(scrapy.Spider):
-    name = "TikiUserRating123"
+    name = "TikiUserRating"
     start_urls = ["https://tiki.vn/dien-gia-dung/c1882?src=c.1882.hamburger_menu_fly_out_banner"]
 
     def parse(self, response):
@@ -15,9 +15,8 @@ class UserRating(scrapy.Spider):
             temp = re.search('\d{6,8}', str(productLink))
             productID = temp.group()
 
-
             # Gọi tới API chứa thông tin sp lấy 50 comment
-            url = f'https://tiki.vn/api/v2/reviews?product_id=31502009&sort=score|desc,id|desc,stars|all&page=1&limit=40'
+            url = f'https://tiki.vn/api/v2/reviews?product_id={productID}&sort=score|desc,id|desc,stars|all&page=1&limit=100'
             yield response.follow(url=url, callback=self.parseUserRating)
 
     def parseUserRating(self, response):
@@ -34,10 +33,11 @@ class UserRating(scrapy.Spider):
             commentRate = commentRateList[i]
             print(len(commentRate))
             if len(commentRate) > 0:
-                userRating['stt'] = i
-                userRating['userRate'] = userRate
-                userRating['productRate'] = productRate.group()
-                userRating['timeRate'] = timeRate
-                userRating['starRate'] = starRate
-                userRating['commentRate'] = commentRate
-                yield userRating
+                if commentRate != '","status":"approved':
+                    userRating['stt'] = i
+                    userRating['userRate'] = userRate
+                    userRating['productRate'] = productRate.group()
+                    userRating['timeRate'] = timeRate
+                    userRating['starRate'] = starRate
+                    userRating['commentRate'] = commentRate
+                    yield userRating

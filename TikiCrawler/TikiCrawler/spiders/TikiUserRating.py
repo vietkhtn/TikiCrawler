@@ -1,5 +1,9 @@
 import scrapy
 import re
+import demoji
+
+from numpy import unicode
+
 from ..items import TikiUserRating
 
 class UserRating(scrapy.Spider):
@@ -31,13 +35,15 @@ class UserRating(scrapy.Spider):
             timeRate = timeRateList[i]
             starRate = startRateList[i]
             commentRate = commentRateList[i]
-            print(len(commentRate))
-            if len(commentRate) > 0:
-                if commentRate != '","status":"approved':
-                    userRating['stt'] = i
-                    userRating['userRate'] = userRate
-                    userRating['productRate'] = productRate.group()
-                    userRating['timeRate'] = timeRate
-                    userRating['starRate'] = starRate
-                    userRating['commentRate'] = commentRate
-                    yield userRating
+            commentRate_cutSpecialChar =  commentRate.replace("\/","").replace(r"\n","")
+            commentRate_fixUnicode = commentRate_cutSpecialChar.encode('UTF-8', errors='ignore').decode('unicode_escape')
+            if len(commentRate_fixUnicode) > 0:
+                    if commentRate != '","status":"approved':
+                        userRating['stt'] = i
+                        userRating['userRate'] = userRate.encode().decode('unicode_escape')
+                        userRating['productRate'] = productRate.group().encode().decode('unicode_escape')
+                        userRating['timeRate'] = timeRate
+                        userRating['starRate'] = starRate
+                        userRating['commentRate'] = commentRate_fixUnicode
+                        yield userRating
+

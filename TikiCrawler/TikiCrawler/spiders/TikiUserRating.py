@@ -1,7 +1,7 @@
+import datetime
+
 import scrapy
 import re
-import demoji
-
 from numpy import unicode
 
 from ..items import TikiUserRating
@@ -19,7 +19,7 @@ class UserRating(scrapy.Spider):
             temp = re.search('\d{6,8}', str(productLink))
             productID = temp.group()
 
-            # Gọi tới API chứa thông tin sp lấy 50 comment
+            # Gọi tới API chứa thông tin sp lấy 100 comment
             url = f'https://tiki.vn/api/v2/reviews?product_id={productID}&sort=score|desc,id|desc,stars|all&page=1&limit=100'
             yield response.follow(url=url, callback=self.parseUserRating)
 
@@ -42,7 +42,7 @@ class UserRating(scrapy.Spider):
                         userRating['stt'] = i
                         userRating['userRate'] = userRate.encode().decode('unicode_escape')
                         userRating['productRate'] = productRate.group().encode().decode('unicode_escape')
-                        userRating['timeRate'] = timeRate
+                        userRating['timeRate'] = datetime.datetime.fromtimestamp(float(timeRate)).strftime('%Y-%m-%d %H:%M:%S')
                         userRating['starRate'] = starRate
                         userRating['commentRate'] = commentRate_fixUnicode
                         yield userRating
